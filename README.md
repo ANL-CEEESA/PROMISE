@@ -75,14 +75,14 @@ model.write('output.lp')
 
 If you use PROMISE in your research (instances, models or algorithms), we kindly request that you cite the package as follows:
 
-* Muhammet Ceyhan Sahin, Deniz Altinpulluk, Shijia Zhao, Feng Qiu, and Murat Yildirim. author, “A degradation embedded stochastic optimization framework for inspection and maintenance in marine energy systems”, submitted to IEEE Transactions on Power Systems, 2023
+* Muhammet Ceyhan Sahin, Deniz Altinpulluk, Shijia Zhao, Feng Qiu, and Murat Yildirim. **“A degradation embedded stochastic optimization framework for inspection and maintenance in marine energy systems”**, submitted to IEEE Transactions on Power Systems, 2023
 
 
 ## License
 
 ```text
 PROMISE: A Python optimization package for the inspection and maintenance scheduling of marine energy systems.
-Copyright © 2023-2023, UChicago Argonne, LLC. All Rights Reserved.
+Copyright © 2022-2023, UChicago Argonne, LLC. All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met:
