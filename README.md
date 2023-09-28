@@ -1,6 +1,7 @@
 # PROMISE
 
 **PROMISE** is an optimization package for the inspection and maintenance scheduling of marine energy systems, a fundamental optimization problem in marine energy systems used. The package provides a five-year significant wave height data together with low and medium accessibility cases for the problem and Python implementations of state-of-the-art stochastic mixed-integer programming formulation using Gurobi.
+
 ![image](https://github.com/ANL-CEEESA/PROMISE/assets/62155196/b487837b-4833-4fff-8488-792a62b452bf)
 
 
