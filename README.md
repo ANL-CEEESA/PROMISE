@@ -1,6 +1,6 @@
 # PROMISE
 
-**PROMISE** (UC.jl) is an optimization package for the inspection and maintenance scheduling of marine energy systems, a fundamental optimization problem in marine energy systems used. The package provides a five-year significant wave height data together with low and medium accessibility cases for the problem and Python implementations of state-of-the-art stochastic mixed-integer programming formulation using Gurobi.
+**PROMISE** is an optimization package for the inspection and maintenance scheduling of marine energy systems, a fundamental optimization problem in marine energy systems used. The package provides a five-year significant wave height data together with low and medium accessibility cases for the problem and Python implementations of state-of-the-art stochastic mixed-integer programming formulation using Gurobi.
 
 
 ## Sample Usage
@@ -73,7 +73,7 @@ model.write('output.lp')
 
 If you use PROMISE in your research (instances, models or algorithms), we kindly request that you cite the package as follows:
 
-* Muhammet Ceyhan Sahin, Deniz Altinpulluk, Zhao Shijia, Feng Qui, and Murat Yildirim. author, “A degradation embedded stochastic optimization framework for inspection and maintenance in marine energy systems”, submitted to IEEE Transactions on Power Systems, 2023
+* Muhammet Ceyhan Sahin, Deniz Altinpulluk, Shijia Zhao, Feng Qiu, and Murat Yildirim. author, “A degradation embedded stochastic optimization framework for inspection and maintenance in marine energy systems”, submitted to IEEE Transactions on Power Systems, 2023
 
 
 ## License
