@@ -87,7 +87,7 @@ UnitCommitment.write("/tmp/output.json", solution)
 
 ## Acknowledgments
 
-* This material is based upon work supported by the U.S. Department of Energy, Office of Energy Efficiency and Renewable Energy (EERE), specifically the Water Power Technology Office (WPTO), under seedling project "Prognostics Driven Operations, Maintenance and Inspection for a Sustainable Energy Infrastructure (PROMISE): Developing Maintenance Decision Models for Marine Energy". 
+* This material is based upon work supported by the U.S. Department of Energy, Office of Energy Efficiency and Renewable Energy (EERE), specifically the **Water Power Technology Office (WPTO)**, under seedling project "Prognostics Driven Operations, Maintenance and Inspection for a Sustainable Energy Infrastructure (PROMISE): Developing Maintenance Decision Models for Marine Energy". 
 
 ## Citing
 
@@ -99,7 +99,7 @@ If you use PROMISE in your research (instances, models or algorithms), we kindly
 ## License
 
 ```text
-PROMISE: A Python Package for Security-Constrained Unit Commitment
+PROMISE: A Python Package for Prognostics, Operations & Maintenance in Marine Energy Systems
 Copyright © 2023-2023, UChicago Argonne, LLC. All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
