@@ -1,89 +1,69 @@
 # PROMISE
 
-**PROMISE** (UC.jl) is an optimization package for the Security-Constrained Unit Commitment Problem (SCUC), a fundamental optimization problem in power systems used, for example, to clear the day-ahead electricity markets. The package provides benchmark instances for the problem and Julia/JuMP implementations of state-of-the-art mixed-integer programming formulations.
+**PROMISE** (UC.jl) is an optimization package for the inspection and maintenance scheduling of marine energy systems, a fundamental optimization problem in marine energy systems used. The package provides a five-year significant wave height data together with low and medium accessibility cases for the problem and Python implementations of state-of-the-art stochastic mixed-integer programming formulation using Gurobi.
 
-## Package Components
-
-* **Data Format:** The package proposes an extensible and fully-documented JSON-based data format for SCUC, developed in collaboration with Independent System Operators (ISOs), which describes the most important aspects of the problem. The format supports the most common generator characteristics (including ramping, piecewise-linear production cost curves and time-dependent startup costs), as well as operating reserves, price-sensitive loads, transmission networks and contingencies.
-* **Benchmark Instances:** The package provides a diverse collection of large-scale benchmark instances collected from the literature, converted into a common data format, and extended using data-driven methods to make them more challenging and realistic.
-* **Model Implementation**: The package provides Julia/JuMP implementations of state-of-the-art formulations and solution methods for SCUC, including multiple ramping formulations ([ArrCon2000][ArrCon2000], [MorLatRam2013][MorLatRam2013], [DamKucRajAta2016][DamKucRajAta2016], [PanGua2016][PanGua2016]), multiple piecewise-linear costs formulations ([Gar1962][Gar1962], [CarArr2006][CarArr2006], [KnuOstWat2018][KnuOstWat2018]) and contingency screening methods ([XavQiuWanThi2019][XavQiuWanThi2019]). Our goal is to keep these implementations up-to-date as new methods are proposed in the literature.
-* **Benchmark Tools:** The package provides automated benchmark scripts to accurately evaluate the performance impact of proposed code changes.
-
-[ArrCon2000]: https://doi.org/10.1109/59.871739
-[CarArr2006]: https://doi.org/10.1109/TPWRS.2006.876672
-[DamKucRajAta2016]: https://doi.org/10.1007/s10107-015-0919-9
-[Gar1962]: https://doi.org/10.1109/AIEEPAS.1962.4501405
-[KnuOstWat2018]: https://doi.org/10.1109/TPWRS.2017.2783850
-[MorLatRam2013]: https://doi.org/10.1109/TPWRS.2013.2251373
-[PanGua2016]: https://doi.org/10.1287/opre.2016.1520
-[XavQiuWanThi2019]: https://doi.org/10.1109/TPWRS.2019.2892620
 
 ## Sample Usage
 
-```julia
-using Cbc
-using JuMP
-using UnitCommitment
+```python
+# Import Gurobi optimization package
+from gurobipy import *
 
-import UnitCommitment:
-    Formulation,
-    KnuOstWat2018,
-    MorLatRam2013,
-    ShiftFactorsFormulation
+# Construct model
+model = Model("optimization")
 
-# Read benchmark instance
-instance = UnitCommitment.read_benchmark(
-    "matpower/case118/2017-02-01",
-)
+# Initialize variables
+for j in range(1, Omega + 1, W):
+    for i in range(1, M + 1):
+        model.addConstr(l_temp[j, i, 0] == degradation[i], name='Initialization (1)_%d,%d' % (j, i))
+...
 
-# Construct model (using state-of-the-art defaults)
-model = UnitCommitment.build_model(
-    instance = instance,
-    optimizer = Cbc.Optimizer,
-)
+# Update the model - Couple the maintenance status with preventive and corrective maintenance decisions.
+for w in range(1, Omega + 1):
+    for i in range(1, M + 1):
+        for t in range(0, T + 1):
+            model.addConstr(m[w, i, t] == quicksum(v[w, i, s] for s in range(max(0, t - Y_p + 1), t + 1))
+                            + quicksum(r[w, i, s] for s in range(max(0, t - Y_c + 1), t + 1)),
+                            name='Constraint (14)_%d,%d,%d' % (w, i, t))
+            # An asset cannot be in failure mode if a failure was not started until time t.
+            model.addConstr(f[w, i, t] <= quicksum(q[w, i, s] for s in range(0, t + 1)),
+                            name='Constraint (Q)_%d,%d,%d' % (w, i, t))
+            # A degradation level must be less than or equal to the failure threshold
+            model.addConstr(l[w, i, t] <= Lamda, name='Constraint (15)_%d,%d,%d' % (w, i, t))
+            # A crew visit must be scheduled to location k in scenario w, if a maintenance or an inspection is
+            # scheduled for asset i in that location.
+            model.addConstr(m[w, i, t] <= visit[w, t], name='Constraint (20)_%d,%d,%d' % (w, i, t))
+            model.addConstr(z[i, t] <= visit[w, t], name='Constraint (21)_%d,%d,%d' % (w, i, t))
+            # If a failure occurs at time t, then a preventive maintenance cannot be started for the asset in that
+            # scenario.
+            model.addConstr(1 - f[w, i, t] >= v[w, i, t], name='Constraint (16)_%d,%d,%d' % (w, i, t))
+            # Each period that the asset is not in failure mode or under maintenance, the asset is available.
+            model.addConstr(a[w, i, t] == 1 - f[w, i, t] - m[w, i, t], name='Availability_%d,%d,%d' % (w, i, t))
+        # If an asset was in failure status until time t − 1, but not in time t, then a corrective maintenance must
+        # be started for the asset in that scenario.
+        for t in range(1, T + 1):
+            model.addConstr(f[w, i, t - 1] - f[w, i, t] <= r[w, i, t], name='Constraint (17)_%d,%d,%d' % (w, i, t))
+# If a visit to location k is not possible during maintenance period t in scenario w, then the maintenance crew
+# cannot conduct maintenance, or inspection at that location.
+for w in range(1, Omega + 1):
+    for t in range(0, T + 1):
+        model.addConstr(visit[w, t] <= avail[w, t], name='Constraint (22)_%d,%d' % (w, t))
 
-# Construct model (using customized formulation)
-model = UnitCommitment.build_model(
-    instance = instance,
-    optimizer = Cbc.Optimizer,
-    formulation = Formulation(
-        pwl_costs = KnuOstWat2018.PwlCosts(),
-        ramping = MorLatRam2013.Ramping(),
-        startup_costs = MorLatRam2013.StartupCosts(),
-        transmission = ShiftFactorsFormulation(
-            isf_cutoff = 0.005,
-            lodf_cutoff = 0.001,
-        ),
-    ),
-)
+...
 
-# Modify the model (e.g. add custom constraints)
-@constraint(
-    model,
-    model[:is_on]["g3", 1] + model[:is_on]["g4", 1] <= 1,
-)
+model.update()
 
-# Solve model
-UnitCommitment.optimize!(model)
-
-# Extract solution
-solution = UnitCommitment.solution(model)
-UnitCommitment.write("/tmp/output.json", solution)
+model.modelSense = GRB.MINIMIZE
+model.optimize()
+model.write('output.lp')
 ```
 
-## Documentation
-
-1. [Usage](https://anl-ceeesa.github.io/UnitCommitment.jl/0.3/usage/)
-2. [Data Format](https://anl-ceeesa.github.io/UnitCommitment.jl/0.3/format/)
-3. [Instances](https://anl-ceeesa.github.io/UnitCommitment.jl/0.3/instances/)
-4. [JuMP Model](https://anl-ceeesa.github.io/UnitCommitment.jl/0.3/model/)
-5. [API Reference](https://anl-ceeesa.github.io/UnitCommitment.jl/0.3/api/)
-
 ## Authors
-* **Feng Qiu** (Argonne National Laboratory)
 * **Muhammet Ceyhan Sahin** (Wayne State University)
-* **Murat Yildirim** (Wayne State University)
+* **Deniz Altinpulluk** (Wayne State University)
 * **Shijia Zhao** (Argonne National Laboratory)
+* **Murat Yildirim** (Wayne State University)
+* **Feng Qiu** (Argonne National Laboratory)
 
 ## Acknowledgments
 
@@ -93,13 +73,13 @@ UnitCommitment.write("/tmp/output.json", solution)
 
 If you use PROMISE in your research (instances, models or algorithms), we kindly request that you cite the package as follows:
 
-* **Alinson S. Xavier, Aleksandr M. Kazachkov, Ogün Yurdakul, Feng Qiu**. "UnitCommitment.jl: A Julia/JuMP Optimization Package for Security-Constrained Unit Commitment (Version 0.3)". Submitted to ..., 2023
+* Muhammet Ceyhan Sahin, Deniz Altinpulluk, Zhao Shijia, Feng Qui, and Murat Yildirim. author, “A degradation embedded stochastic optimization framework for inspection and maintenance in marine energy systems”, submitted to IEEE Transactions on Power Systems, 2023
 
 
 ## License
 
 ```text
-PROMISE: A Python Package for Prognostics, Operations & Maintenance in Marine Energy Systems
+PROMISE: A Python optimization package for the inspection and maintenance scheduling of marine energy systems.
 Copyright © 2023-2023, UChicago Argonne, LLC. All Rights Reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
